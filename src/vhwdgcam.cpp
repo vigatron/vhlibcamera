@@ -386,7 +386,7 @@ void VHWidgetCamera::UiInitObjects()
     UiFillFormats(cmbCameraList->currentIndex());
 
     // Frame preview area
-    wdgImage = new WidgetImage();
+    wdgImage = new VHWidgetCamImage();
 
     // Capture control buttons
     btnCameraStart = new QPushButton("Camera Start", this);

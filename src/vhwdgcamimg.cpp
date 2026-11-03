@@ -24,7 +24,7 @@
 /**
  * 
  */
-WidgetImage::WidgetImage(QWidget * parent)
+VHWidgetCamImage::VHWidgetCamImage(QWidget * parent)
     : QWidget(parent), image(nullptr) {
 
     setMinimumSize(640, 480);
@@ -41,7 +41,7 @@ WidgetImage::WidgetImage(QWidget * parent)
 /**
  * 
  */
-bool WidgetImage::LoadImage(const QString & fname) {
+bool VHWidgetCamImage::LoadImage(const QString & fname) {
    
     bool r = image.load(fname);
     update();
@@ -51,7 +51,7 @@ bool WidgetImage::LoadImage(const QString & fname) {
 /**
  * 
  */
-void WidgetImage::paintEvent(QPaintEvent *e) {
+void VHWidgetCamImage::paintEvent(QPaintEvent *e) {
 
     QPainter p(this);
 
@@ -85,7 +85,7 @@ void WidgetImage::paintEvent(QPaintEvent *e) {
 /**
  * 
  */
-bool WidgetImage::SetImage(const QImage & newImage) {
+bool VHWidgetCamImage::SetImage(const QImage & newImage) {
 
     // нельзя установить пустое изображение
     if (newImage.isNull()) {

@@ -21,11 +21,11 @@
 #include <QPainter>
 #include <QWidget>
 
-class WidgetImage : public QWidget
+class VHWidgetCamImage : public QWidget
 {
 
 public:
-    explicit WidgetImage(QWidget *parent = nullptr);
+    explicit VHWidgetCamImage(QWidget *parent = nullptr);
 
     bool LoadImage(const QString &fname);
     bool SetImage(const QImage &newImage);

@@ -215,7 +215,7 @@ private:
     QComboBox *cmbFormatList = nullptr;
 
     // Frame preview area
-    WidgetImage *wdgImage = nullptr;
+    VHWidgetCamImage *wdgImage = nullptr;
 
     /**
      * @brief Initialize the widget
