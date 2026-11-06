@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(vhlibcamera VERSION 0.0.1 LANGUAGES CXX)
+project(vhlibcamera VERSION 0.0.2 LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# option(MYLIB_BUILD_TESTS "Build unit tests" OFF)
+option(MYLIB_BUILD_TESTS "Build test applications" OFF)
 
 configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/version.h.in"
@@ -47,8 +47,8 @@ target_link_libraries(vhlib_camera PUBLIC
     Qt6::Multimedia
 )
 
-# enable_testing()
-#
-# if(MYLIB_BUILD_TESTS)
-#     add_subdirectory(tests)
-# endif()
+enable_testing()
+
+if(MYLIB_BUILD_TESTS)
+    add_subdirectory(test)
+endif()

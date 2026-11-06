@@ -1,14 +1,14 @@
 /* ======================================================================================
  * Library       : vhlibcamera
  * Description   : Qt6 camera capture widget with live preview and format selection
- * Revision      : 0.0.1
+ * Revision      : 0.0.2
  * Source        : https://github.com/vigatron/vhlibcamera
  * Disclaimer    : Provided "AS IS", without warranty.
  * License       : MIT
  * File          : src/vhwdgcamimg.cpp
- * Content size  : 1969
- * Date / Time   : 02-11-2026 21:09:42
- * MD5           : 81202d022ee08df686119ac4e69afdd9
+ * Content size  : 1994
+ * Date / Time   : 06-11-2026 23:33:19
+ * MD5           : 2de0eb5e59eca6a0d5fe26e6202287c2
  * Notes         : MD5 = file content without header/footer
  * Encoding      : UTF-8
  * Author        : Viktor Glebov / V01G04A81
@@ -24,7 +24,7 @@
 /**
  * 
  */
-WidgetImage::WidgetImage(QWidget * parent)
+VHWidgetCamImage::VHWidgetCamImage(QWidget * parent)
     : QWidget(parent), image(nullptr) {
 
     setMinimumSize(640, 480);
@@ -41,7 +41,7 @@ WidgetImage::WidgetImage(QWidget * parent)
 /**
  * 
  */
-bool WidgetImage::LoadImage(const QString & fname) {
+bool VHWidgetCamImage::LoadImage(const QString & fname) {
    
     bool r = image.load(fname);
     update();
@@ -51,7 +51,7 @@ bool WidgetImage::LoadImage(const QString & fname) {
 /**
  * 
  */
-void WidgetImage::paintEvent(QPaintEvent *e) {
+void VHWidgetCamImage::paintEvent(QPaintEvent *e) {
 
     QPainter p(this);
 
@@ -85,7 +85,7 @@ void WidgetImage::paintEvent(QPaintEvent *e) {
 /**
  * 
  */
-bool WidgetImage::SetImage(const QImage & newImage) {
+bool VHWidgetCamImage::SetImage(const QImage & newImage) {
 
     // нельзя установить пустое изображение
     if (newImage.isNull()) {
@@ -102,9 +102,9 @@ bool WidgetImage::SetImage(const QImage & newImage) {
 /* ========================[  END FILE CONTENT  ]========================
  * Library          : vhlibcamera
  * File             : src/vhwdgcamimg.cpp
- * Revision         : 0.0.1
- * Content size     : 1969
- * Date / Time      : 02-11-2026 21:09:42
- * MD5              : 81202d022ee08df686119ac4e69afdd9
+ * Revision         : 0.0.2
+ * Content size     : 1994
+ * Date / Time      : 06-11-2026 23:33:19
+ * MD5              : 2de0eb5e59eca6a0d5fe26e6202287c2
  * Copyright        : © 2026 Viktor Glebov
  * ====================================================================== */

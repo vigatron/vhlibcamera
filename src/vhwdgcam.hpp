@@ -1,14 +1,14 @@
 /* ======================================================================================
  * Library       : vhlibcamera
  * Description   : Qt6 camera capture widget with live preview and format selection
- * Revision      : 0.0.1
+ * Revision      : 0.0.2
  * Source        : https://github.com/vigatron/vhlibcamera
  * Disclaimer    : Provided "AS IS", without warranty.
  * License       : MIT
  * File          : src/vhwdgcam.hpp
- * Content size  : 6235
- * Date / Time   : 02-11-2026 21:09:42
- * MD5           : 4e82fc02968cc369deff241e6d62f565
+ * Content size  : 6642
+ * Date / Time   : 06-11-2026 23:33:19
+ * MD5           : 484cbd0f89cd13645d7030931ab86593
  * Notes         : MD5 = file content without header/footer
  * Encoding      : UTF-8
  * Author        : Viktor Glebov / V01G04A81
@@ -81,7 +81,8 @@ public:
 
     /**
      * @brief Stop the camera
-     * Suspends the frame stream, camera resources are kept alive
+     * Releases the capture session and destroys the camera resources,
+     * the next CameraStart() reopens the camera from scratch
      */
     void CameraStop();
 
@@ -108,6 +109,12 @@ private slots:
 
     // Handler of the "Camera Stop" button
     void OnClickCameraStop();
+
+    /**
+     * @brief Handler of the "Camera Pause" button
+     * Toggles frame update suppression, the QVideoSink stream keeps running
+     */
+    void OnClickCameraPause();
 
     /**
      * @brief Handler of the camera selection change
@@ -137,6 +144,9 @@ private:
 
     // True while the camera is producing frames
     bool cameraRunning = false;
+
+    // True while frame updates to the preview are suppressed (paused)
+    bool cameraPaused = false;
 
     // Formats supported by the camera currently listed in the UI
     QList<QCameraFormat> formatsList;
@@ -197,7 +207,7 @@ private:
 
     /**
      * @brief Update the control buttons state
-     * Enables the start or the stop button according to the current state
+     * Enables the start, the pause and the stop buttons according to the current state
      */
     void UpdateControls();
 
@@ -206,6 +216,7 @@ private:
     // ------------------------------------------------------------------
 
     QPushButton *btnCameraStart = nullptr;
+    QPushButton *btnCameraPause = nullptr;
     QPushButton *btnCameraStop = nullptr;
 
     // Available cameras list
@@ -215,7 +226,7 @@ private:
     QComboBox *cmbFormatList = nullptr;
 
     // Frame preview area
-    WidgetImage *wdgImage = nullptr;
+    VHWidgetCamImage *wdgImage = nullptr;
 
     /**
      * @brief Initialize the widget
@@ -240,9 +251,9 @@ private:
 /* ========================[  END FILE CONTENT  ]========================
  * Library          : vhlibcamera
  * File             : src/vhwdgcam.hpp
- * Revision         : 0.0.1
- * Content size     : 6235
- * Date / Time      : 02-11-2026 21:09:42
- * MD5              : 4e82fc02968cc369deff241e6d62f565
+ * Revision         : 0.0.2
+ * Content size     : 6642
+ * Date / Time      : 06-11-2026 23:33:19
+ * MD5              : 484cbd0f89cd13645d7030931ab86593
  * Copyright        : © 2026 Viktor Glebov
  * ====================================================================== */
