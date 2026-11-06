@@ -81,7 +81,8 @@ public:
 
     /**
      * @brief Stop the camera
-     * Suspends the frame stream, camera resources are kept alive
+     * Releases the capture session and destroys the camera resources,
+     * the next CameraStart() reopens the camera from scratch
      */
     void CameraStop();
 

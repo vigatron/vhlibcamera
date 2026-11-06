@@ -169,12 +169,11 @@ bool VHWidgetCamera::CameraClose()
         sink = nullptr;
     }
 
-    // Destroy the camera
+    // Clear the capture session and destroy the camera
+    // (the session must be detached before the camera is deleted)
+    session.setCamera(nullptr);
     delete camera;
     camera = nullptr;
-
-    // Clear the capture session
-    session.setCamera(nullptr);
 
     UpdateControls();
 
@@ -202,19 +201,14 @@ void VHWidgetCamera::CameraStart()
 
 /**
  * @brief Stop the camera
- * Suspends the frame stream, camera resources are kept alive
+ * Releases the capture session and destroys the camera resources,
+ * the next CameraStart() reopens the camera from scratch
  */
 void VHWidgetCamera::CameraStop()
 {
-    cameraRunning = false;
-    cameraPaused = false;
-
-    if (camera)
-    {
-        camera->stop();
-    }
-
-    UpdateControls();
+    // Full deinitialization of the capture pipeline:
+    // stop the stream and release the camera resources
+    CameraClose();
 }
 
 /**
@@ -463,7 +457,7 @@ void VHWidgetCamera::OnClickCameraStart()
 
 /**
  * @brief Handler of the "Camera Stop" button
- * Suspends the frame stream, camera resources are kept alive
+ * Releases the camera capture pipeline, the next start reopens the camera
  */
 void VHWidgetCamera::OnClickCameraStop()
 {
