@@ -7,7 +7,7 @@
  * License       : MIT
  * File          : src/vhwdgcam.hpp
  * Content size  : 6642
- * Date / Time   : 06-11-2026 23:07:24
+ * Date / Time   : 06-11-2026 23:33:19
  * MD5           : 484cbd0f89cd13645d7030931ab86593
  * Notes         : MD5 = file content without header/footer
  * Encoding      : UTF-8
@@ -253,7 +253,7 @@ private:
  * File             : src/vhwdgcam.hpp
  * Revision         : 0.0.2
  * Content size     : 6642
- * Date / Time      : 06-11-2026 23:07:24
+ * Date / Time      : 06-11-2026 23:33:19
  * MD5              : 484cbd0f89cd13645d7030931ab86593
  * Copyright        : © 2026 Viktor Glebov
  * ====================================================================== */

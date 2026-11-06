@@ -2,6 +2,22 @@
 
 **A Qt6 / C++17 camera selector widget with live preview and capture controls.**
 
+![Language](https://img.shields.io/badge/C%2B%2B-17-blue.svg)
+![Platform](https://img.shields.io/badge/platform-Desktop-lightgrey.svg)
+![License](https://img.shields.io/badge/License-MIT-yellow.svg)
+![Qt](https://img.shields.io/badge/Qt-6-00599C.svg)
+![Version](https://img.shields.io/badge/version-0.0.2-orange.svg)
+![Author](https://img.shields.io/badge/Author-Viktor%20Glebov-red.svg)
+
+| Property | Value |
+|---|---|
+| **Library** | `vhlibcamera` |
+| **Revision** | `0.0.2` |
+| **Language** | C++17 |
+| **Author** | Viktor Glebov / V01G04A81 |
+| **License** | MIT |
+| **Dependency** | Qt 6 (Core, Widgets, Multimedia) |
+
 `vhlibcamera` is a small, self-contained library that wraps the Qt6 Multimedia camera stack into a ready-to-use widget. Drop `VHWidgetCamera` into any Qt Widgets application and you get camera enumeration, video-format selection, a live frame preview and start/stop control buttons without writing the capture plumbing yourself. Internally the widget owns a `QMediaCaptureSession`, a `QCamera` and a `QVideoSink`; incoming `QVideoFrame` objects are converted to `QImage` and pushed to the preview area, while the same image is re-emitted through the `frameReady()` signal so the rest of your application can consume it.
 
 The widget is built from two classes. `VHWidgetCamera` is the public entry point: it enumerates available devices through `QMediaDevices::videoInputs()`, fills the camera and format combo boxes, and exposes a compact API — `CameraOpen(int)`, `CameraClose()`, `CameraStart()`, `CameraStop()` and the pause toggle control — for programmatic control. `WidgetImage` is the lightweight preview surface: a `QWidget` that paints either a centered "No Image" placeholder or the most recent frame, scaled to fit, with a soft drop shadow. Formats are listed as `WIDTHxHEIGHT PIXELFORMAT`, the last supported format is selected by default, and the combo box is kept in sync with whatever format the backend actually applied, since camera drivers are free to adjust a requested format.

@@ -7,7 +7,7 @@
  * License       : MIT
  * File          : src/vhwdgcam.cpp
  * Content size  : 12678
- * Date / Time   : 06-11-2026 23:07:24
+ * Date / Time   : 06-11-2026 23:33:19
  * MD5           : d0497cf7782eea790269fc74bfb02597
  * Notes         : MD5 = file content without header/footer
  * Encoding      : UTF-8
@@ -524,7 +524,7 @@ void VHWidgetCamera::OnFormatSelected(int idx)
  * File             : src/vhwdgcam.cpp
  * Revision         : 0.0.2
  * Content size     : 12678
- * Date / Time      : 06-11-2026 23:07:24
+ * Date / Time      : 06-11-2026 23:33:19
  * MD5              : d0497cf7782eea790269fc74bfb02597
  * Copyright        : © 2026 Viktor Glebov
  * ====================================================================== */
