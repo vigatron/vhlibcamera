@@ -7,7 +7,7 @@
  * License       : MIT
  * File          : src/vhwdgcamimg.cpp
  * Content size  : 1994
- * Date / Time   : 06-11-2026 22:17:54
+ * Date / Time   : 06-11-2026 23:07:24
  * MD5           : 2de0eb5e59eca6a0d5fe26e6202287c2
  * Notes         : MD5 = file content without header/footer
  * Encoding      : UTF-8
@@ -104,7 +104,7 @@ bool VHWidgetCamImage::SetImage(const QImage & newImage) {
  * File             : src/vhwdgcamimg.cpp
  * Revision         : 0.0.2
  * Content size     : 1994
- * Date / Time      : 06-11-2026 22:17:54
+ * Date / Time      : 06-11-2026 23:07:24
  * MD5              : 2de0eb5e59eca6a0d5fe26e6202287c2
  * Copyright        : © 2026 Viktor Glebov
  * ====================================================================== */

@@ -6,9 +6,9 @@
  * Disclaimer    : Provided "AS IS", without warranty.
  * License       : MIT
  * File          : src/vhwdgcam.cpp
- * Content size  : 12539
- * Date / Time   : 06-11-2026 22:17:54
- * MD5           : 8c06ecd33f2395e22fafdce960adb0b2
+ * Content size  : 12678
+ * Date / Time   : 06-11-2026 23:07:24
+ * MD5           : d0497cf7782eea790269fc74bfb02597
  * Notes         : MD5 = file content without header/footer
  * Encoding      : UTF-8
  * Author        : Viktor Glebov / V01G04A81
@@ -523,8 +523,8 @@ void VHWidgetCamera::OnFormatSelected(int idx)
  * Library          : vhlibcamera
  * File             : src/vhwdgcam.cpp
  * Revision         : 0.0.2
- * Content size     : 12539
- * Date / Time      : 06-11-2026 22:17:54
- * MD5              : 8c06ecd33f2395e22fafdce960adb0b2
+ * Content size     : 12678
+ * Date / Time      : 06-11-2026 23:07:24
+ * MD5              : d0497cf7782eea790269fc74bfb02597
  * Copyright        : © 2026 Viktor Glebov
  * ====================================================================== */
