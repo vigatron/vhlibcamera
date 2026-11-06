@@ -206,6 +206,7 @@ private:
     // ------------------------------------------------------------------
 
     QPushButton *btnCameraStart = nullptr;
+    QPushButton *btnCameraPause = nullptr;
     QPushButton *btnCameraStop = nullptr;
 
     // Available cameras list
