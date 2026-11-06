@@ -1,14 +1,14 @@
 /* ======================================================================================
  * Library       : vhlibcamera
  * Description   : Qt6 camera capture widget with live preview and format selection
- * Revision      : 0.0.1
+ * Revision      : 0.0.2
  * Source        : https://github.com/vigatron/vhlibcamera
  * Disclaimer    : Provided "AS IS", without warranty.
  * License       : MIT
  * File          : src/vhwdgcam.hpp
- * Content size  : 6235
- * Date / Time   : 02-11-2026 21:09:42
- * MD5           : 4e82fc02968cc369deff241e6d62f565
+ * Content size  : 6575
+ * Date / Time   : 06-11-2026 22:17:54
+ * MD5           : 6ac07a4c74a1c6828e560666c1ac61d7
  * Notes         : MD5 = file content without header/footer
  * Encoding      : UTF-8
  * Author        : Viktor Glebov / V01G04A81
@@ -110,6 +110,12 @@ private slots:
     void OnClickCameraStop();
 
     /**
+     * @brief Handler of the "Camera Pause" button
+     * Toggles frame update suppression, the QVideoSink stream keeps running
+     */
+    void OnClickCameraPause();
+
+    /**
      * @brief Handler of the camera selection change
      * Refreshes the video formats list and reopens the capture session
      * on the newly selected camera
@@ -137,6 +143,9 @@ private:
 
     // True while the camera is producing frames
     bool cameraRunning = false;
+
+    // True while frame updates to the preview are suppressed (paused)
+    bool cameraPaused = false;
 
     // Formats supported by the camera currently listed in the UI
     QList<QCameraFormat> formatsList;
@@ -197,7 +206,7 @@ private:
 
     /**
      * @brief Update the control buttons state
-     * Enables the start or the stop button according to the current state
+     * Enables the start, the pause and the stop buttons according to the current state
      */
     void UpdateControls();
 
@@ -241,9 +250,9 @@ private:
 /* ========================[  END FILE CONTENT  ]========================
  * Library          : vhlibcamera
  * File             : src/vhwdgcam.hpp
- * Revision         : 0.0.1
- * Content size     : 6235
- * Date / Time      : 02-11-2026 21:09:42
- * MD5              : 4e82fc02968cc369deff241e6d62f565
+ * Revision         : 0.0.2
+ * Content size     : 6575
+ * Date / Time      : 06-11-2026 22:17:54
+ * MD5              : 6ac07a4c74a1c6828e560666c1ac61d7
  * Copyright        : © 2026 Viktor Glebov
  * ====================================================================== */

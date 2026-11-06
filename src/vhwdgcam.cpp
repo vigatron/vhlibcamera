@@ -1,14 +1,14 @@
 /* ======================================================================================
  * Library       : vhlibcamera
  * Description   : Qt6 camera capture widget with live preview and format selection
- * Revision      : 0.0.1
+ * Revision      : 0.0.2
  * Source        : https://github.com/vigatron/vhlibcamera
  * Disclaimer    : Provided "AS IS", without warranty.
  * License       : MIT
  * File          : src/vhwdgcam.cpp
- * Content size  : 11555
- * Date / Time   : 02-11-2026 21:09:42
- * MD5           : e4524afbb7a9ad726401112ce78e784f
+ * Content size  : 12539
+ * Date / Time   : 06-11-2026 22:17:54
+ * MD5           : 8c06ecd33f2395e22fafdce960adb0b2
  * Notes         : MD5 = file content without header/footer
  * Encoding      : UTF-8
  * Author        : Viktor Glebov / V01G04A81
@@ -142,6 +142,7 @@ bool VHWidgetCamera::CameraOpen(int id)
 bool VHWidgetCamera::CameraClose()
 {
     cameraRunning = false;
+    cameraPaused = false;
 
     if (!camera)
     {
@@ -194,6 +195,7 @@ void VHWidgetCamera::CameraStart()
 
     camera->start();
     cameraRunning = true;
+    cameraPaused = false;
 
     UpdateControls();
 }
@@ -205,6 +207,7 @@ void VHWidgetCamera::CameraStart()
 void VHWidgetCamera::CameraStop()
 {
     cameraRunning = false;
+    cameraPaused = false;
 
     if (camera)
     {
@@ -291,13 +294,19 @@ bool VHWidgetCamera::ApplyFormat(int fmtId)
 /**
  * @brief Process a video frame
  * Converts the frame to an image, updates the preview area and
- * emits frameReady() for external listeners
+ * emits frameReady() for external listeners.
+ * Frame updates are suppressed while the camera is paused
  * @param frame Video frame received from the capture session
  */
 void VHWidgetCamera::ProcessFrame(const QVideoFrame &frame)
 {
 
     if (!frame.isValid())
+        return;
+
+    // Frame updates to the preview are suppressed while paused,
+    // the QVideoSink stream itself keeps running
+    if (cameraPaused)
         return;
 
     // The frame is always rendered by the internal preview area,
@@ -323,7 +332,7 @@ void VHWidgetCamera::ReportError(const QString &msg)
 
 /**
  * @brief Update the control buttons state
- * Enables the start or the stop button according to the current state
+ * Enables the start, the pause and the stop buttons according to the current state
  */
 void VHWidgetCamera::UpdateControls()
 {
@@ -337,6 +346,13 @@ void VHWidgetCamera::UpdateControls()
 
     // Stop is available only while the frame stream is running
     btnCameraStop->setEnabled(cameraRunning);
+
+    // Pause toggle is available only while the frame stream is running
+    if (btnCameraPause)
+    {
+        btnCameraPause->setEnabled(cameraRunning);
+        btnCameraPause->setText(cameraPaused ? "Camera Resume" : "Camera Pause");
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -392,6 +408,9 @@ void VHWidgetCamera::UiInitObjects()
     btnCameraStart = new QPushButton("Camera Start", this);
     connect(btnCameraStart, &QPushButton::clicked, this, &VHWidgetCamera::OnClickCameraStart);
 
+    btnCameraPause = new QPushButton("Camera Pause", this);
+    connect(btnCameraPause, &QPushButton::clicked, this, &VHWidgetCamera::OnClickCameraPause);
+
     btnCameraStop = new QPushButton("Camera Stop", this);
     connect(btnCameraStop, &QPushButton::clicked, this, &VHWidgetCamera::OnClickCameraStop);
 
@@ -413,6 +432,7 @@ void VHWidgetCamera::UiInitLayout()
     // Capture control buttons layout
     auto hlayButtons = new QHBoxLayout();
     hlayButtons->addWidget(btnCameraStart);
+    hlayButtons->addWidget(btnCameraPause);
     hlayButtons->addWidget(btnCameraStop);
 
     // Main widget layout
@@ -448,6 +468,17 @@ void VHWidgetCamera::OnClickCameraStart()
 void VHWidgetCamera::OnClickCameraStop()
 {
     CameraStop();
+}
+
+/**
+ * @brief Handler of the "Camera Pause" button
+ * Toggles frame update suppression, the QVideoSink stream keeps running
+ */
+void VHWidgetCamera::OnClickCameraPause()
+{
+    cameraPaused = !cameraPaused;
+
+    UpdateControls();
 }
 
 /**
@@ -497,9 +528,9 @@ void VHWidgetCamera::OnFormatSelected(int idx)
 /* ========================[  END FILE CONTENT  ]========================
  * Library          : vhlibcamera
  * File             : src/vhwdgcam.cpp
- * Revision         : 0.0.1
- * Content size     : 11555
- * Date / Time      : 02-11-2026 21:09:42
- * MD5              : e4524afbb7a9ad726401112ce78e784f
+ * Revision         : 0.0.2
+ * Content size     : 12539
+ * Date / Time      : 06-11-2026 22:17:54
+ * MD5              : 8c06ecd33f2395e22fafdce960adb0b2
  * Copyright        : © 2026 Viktor Glebov
  * ====================================================================== */
