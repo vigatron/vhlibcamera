@@ -6,9 +6,9 @@
  * Disclaimer    : Provided "AS IS", without warranty.
  * License       : MIT
  * File          : src/vhwdgcam.cpp
- * Content size  : 16374
- * Date / Time   : 07-11-2026 02:19:26
- * MD5           : e2b788e2d40c22d19865f66945eb5673
+ * Content size  : 16560
+ * Date / Time   : 07-11-2026 05:36:28
+ * MD5           : 339f3ecd9b76769449daa0e3d6142066
  * Notes         : MD5 = file content without header/footer
  * Encoding      : UTF-8
  * Author        : Viktor Glebov / V01G04A81
@@ -367,8 +367,8 @@ bool VHWidgetCamera::ApplyFormat(int fmtId)
 
 /**
  * @brief Process a video frame
- * Converts the frame to an image, updates the preview area and
- * emits frameReady() for external listeners.
+ * Converts the frame to an image, caches it for currentImage(),
+ * updates the preview area and emits frameReady() for external listeners.
  * Frame updates are suppressed while the camera is stopped or paused
  * @param frame Video frame received from the capture session
  */
@@ -393,6 +393,10 @@ void VHWidgetCamera::ProcessFrame(const QVideoFrame &frame)
     {
         wdgImage->SetImage(img);
     }
+
+    // The last frame is cached for currentImage(): the cache survives
+    // pause / stop, so a frame can be captured at any time
+    imageCurrent = img;
 
     emit frameReady(img);
 }
@@ -648,8 +652,8 @@ void VHWidgetCamera::OnFormatSelected(int idx)
  * Library          : vhlibcamera
  * File             : src/vhwdgcam.cpp
  * Revision         : 0.0.3
- * Content size     : 16374
- * Date / Time      : 07-11-2026 02:19:26
- * MD5              : e2b788e2d40c22d19865f66945eb5673
+ * Content size     : 16560
+ * Date / Time      : 07-11-2026 05:36:28
+ * MD5              : 339f3ecd9b76769449daa0e3d6142066
  * Copyright        : © 2026 Viktor Glebov
  * ====================================================================== */

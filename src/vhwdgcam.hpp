@@ -6,9 +6,9 @@
  * Disclaimer    : Provided "AS IS", without warranty.
  * License       : MIT
  * File          : src/vhwdgcam.hpp
- * Content size  : 8126
- * Date / Time   : 07-11-2026 02:19:26
- * MD5           : 5f7a77bf490d9328cc26b7a059df11cc
+ * Content size  : 8678
+ * Date / Time   : 07-11-2026 05:36:28
+ * MD5           : 283ea33ff7e42e8c4745ca76d62c5f0b
  * Notes         : MD5 = file content without header/footer
  * Encoding      : UTF-8
  * Author        : Viktor Glebov / V01G04A81
@@ -91,6 +91,15 @@ public:
      */
     void CameraStop();
 
+    /**
+     * @brief Get the last captured frame
+     * Returns the image of the last frame delivered by the capture session
+     * and cached by ProcessFrame(). The cached image is kept when the stream
+     * is paused or stopped, so the caller can capture the last known frame
+     * @return Image of the last frame, a null image when no frame was received yet
+     */
+    const QImage &currentImage() const { return imageCurrent; }
+
 signals:
 
     /**
@@ -172,6 +181,9 @@ private:
     // True while frame updates to the preview are suppressed (paused)
     bool cameraPaused = false;
 
+    // Cache of the last frame processed by ProcessFrame()
+    QImage imageCurrent;
+
     // Formats supported by the camera currently listed in the UI
     QList<QCameraFormat> formatsList;
 
@@ -216,8 +228,8 @@ private:
 
     /**
      * @brief Process a video frame
-     * Converts the frame to an image, updates the preview area and
-     * emits frameReady() for external listeners
+     * Converts the frame to an image, caches it for currentImage(),
+     * updates the preview area and emits frameReady() for external listeners
      * @param frame Video frame received from the capture session
      */
     void ProcessFrame(const QVideoFrame &frame);
@@ -288,8 +300,8 @@ private:
  * Library          : vhlibcamera
  * File             : src/vhwdgcam.hpp
  * Revision         : 0.0.3
- * Content size     : 8126
- * Date / Time      : 07-11-2026 02:19:26
- * MD5              : 5f7a77bf490d9328cc26b7a059df11cc
+ * Content size     : 8678
+ * Date / Time      : 07-11-2026 05:36:28
+ * MD5              : 283ea33ff7e42e8c4745ca76d62c5f0b
  * Copyright        : © 2026 Viktor Glebov
  * ====================================================================== */
