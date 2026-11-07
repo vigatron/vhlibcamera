@@ -1,14 +1,14 @@
 /* ======================================================================================
  * Library       : vhlibcamera
  * Description   : Qt6 camera capture widget with live preview and format selection
- * Revision      : 0.0.2
+ * Revision      : 0.0.3
  * Source        : https://github.com/vigatron/vhlibcamera
  * Disclaimer    : Provided "AS IS", without warranty.
  * License       : MIT
  * File          : src/vhwdgcam.hpp
- * Content size  : 6642
- * Date / Time   : 06-11-2026 23:33:19
- * MD5           : 484cbd0f89cd13645d7030931ab86593
+ * Content size  : 8678
+ * Date / Time   : 07-11-2026 05:36:28
+ * MD5           : 283ea33ff7e42e8c4745ca76d62c5f0b
  * Notes         : MD5 = file content without header/footer
  * Encoding      : UTF-8
  * Author        : Viktor Glebov / V01G04A81
@@ -30,6 +30,8 @@
 #include <QPushButton>
 
 #include "vhwdgcamimg.hpp"
+
+class QCloseEvent;
 
 /**
  * @brief Camera widget
@@ -68,7 +70,9 @@ public:
 
     /**
      * @brief Close the camera
-     * Stops the camera, disconnects all signals and releases allocated memory
+     * Stops the frame stream and releases the capture pipeline. The actual
+     * destruction of QCamera and QVideoSink is deferred to the event loop,
+     * so the caller (usually a button handler) never blocks the GUI thread
      * @return true always
      */
     bool CameraClose();
@@ -81,10 +85,20 @@ public:
 
     /**
      * @brief Stop the camera
-     * Releases the capture session and destroys the camera resources,
-     * the next CameraStart() reopens the camera from scratch
+     * Stops the frame stream but keeps the capture pipeline alive, so the
+     * next CameraStart() resumes instantly. The pipeline is destroyed only
+     * by CameraClose() or by the widget destructor
      */
     void CameraStop();
+
+    /**
+     * @brief Get the last captured frame
+     * Returns the image of the last frame delivered by the capture session
+     * and cached by ProcessFrame(). The cached image is kept when the stream
+     * is paused or stopped, so the caller can capture the last known frame
+     * @return Image of the last frame, a null image when no frame was received yet
+     */
+    const QImage &currentImage() const { return imageCurrent; }
 
 signals:
 
@@ -101,6 +115,17 @@ signals:
      * @param msg Human readable error description
      */
     void errorOccurred(const QString &msg);
+
+protected:
+
+    /**
+     * @brief Widget close handler
+     * Deinitializes the camera when the window is closed, even if the user
+     * never pressed Stop: the frame stream is stopped and the capture
+     * pipeline is released, so the device is never left busy
+     * @param event Close event
+     */
+    void closeEvent(QCloseEvent *event) override;
 
 private slots:
 
@@ -131,6 +156,14 @@ private slots:
      */
     void OnFormatSelected(int idx);
 
+    /**
+     * @brief Handler of the camera active state change
+     * Keeps the widget state and the control buttons in sync with the
+     * state actually reported by the backend
+     * @param active true when the camera is producing frames
+     */
+    void OnCameraActiveChanged(bool active);
+
 private:
 
     // ------------------------------------------------------------------
@@ -147,6 +180,9 @@ private:
 
     // True while frame updates to the preview are suppressed (paused)
     bool cameraPaused = false;
+
+    // Cache of the last frame processed by ProcessFrame()
+    QImage imageCurrent;
 
     // Formats supported by the camera currently listed in the UI
     QList<QCameraFormat> formatsList;
@@ -192,8 +228,8 @@ private:
 
     /**
      * @brief Process a video frame
-     * Converts the frame to an image, updates the preview area and
-     * emits frameReady() for external listeners
+     * Converts the frame to an image, caches it for currentImage(),
+     * updates the preview area and emits frameReady() for external listeners
      * @param frame Video frame received from the capture session
      */
     void ProcessFrame(const QVideoFrame &frame);
@@ -204,6 +240,18 @@ private:
      * @param msg Human readable error description
      */
     void ReportError(const QString &msg);
+
+    /**
+     * @brief Release the capture pipeline
+     * Disconnects the frame handler, stops the camera, detaches the video
+     * output and the camera from the capture session and destroys
+     * QVideoSink / QCamera. Idempotent: calling it twice is safe
+     * @param deferred true - destroy the objects through deleteLater(), so
+     *        the call never blocks the GUI thread; false - destroy them
+     *        immediately (the destructor path, where there is no event loop
+     *        left to process a deferred deletion)
+     */
+    void ReleasePipeline(bool deferred = true);
 
     /**
      * @brief Update the control buttons state
@@ -251,9 +299,9 @@ private:
 /* ========================[  END FILE CONTENT  ]========================
  * Library          : vhlibcamera
  * File             : src/vhwdgcam.hpp
- * Revision         : 0.0.2
- * Content size     : 6642
- * Date / Time      : 06-11-2026 23:33:19
- * MD5              : 484cbd0f89cd13645d7030931ab86593
+ * Revision         : 0.0.3
+ * Content size     : 8678
+ * Date / Time      : 07-11-2026 05:36:28
+ * MD5              : 283ea33ff7e42e8c4745ca76d62c5f0b
  * Copyright        : © 2026 Viktor Glebov
  * ====================================================================== */
