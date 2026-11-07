@@ -1,14 +1,14 @@
 /* ======================================================================================
  * Library       : vhlibcamera
  * Description   : Qt6 camera capture widget with live preview and format selection
- * Revision      : 0.0.2
+ * Revision      : 0.0.3
  * Source        : https://github.com/vigatron/vhlibcamera
  * Disclaimer    : Provided "AS IS", without warranty.
  * License       : MIT
  * File          : src/vhwdgcam.hpp
- * Content size  : 6642
- * Date / Time   : 06-11-2026 23:33:19
- * MD5           : 484cbd0f89cd13645d7030931ab86593
+ * Content size  : 8126
+ * Date / Time   : 07-11-2026 02:19:26
+ * MD5           : 5f7a77bf490d9328cc26b7a059df11cc
  * Notes         : MD5 = file content without header/footer
  * Encoding      : UTF-8
  * Author        : Viktor Glebov / V01G04A81
@@ -30,6 +30,8 @@
 #include <QPushButton>
 
 #include "vhwdgcamimg.hpp"
+
+class QCloseEvent;
 
 /**
  * @brief Camera widget
@@ -68,7 +70,9 @@ public:
 
     /**
      * @brief Close the camera
-     * Stops the camera, disconnects all signals and releases allocated memory
+     * Stops the frame stream and releases the capture pipeline. The actual
+     * destruction of QCamera and QVideoSink is deferred to the event loop,
+     * so the caller (usually a button handler) never blocks the GUI thread
      * @return true always
      */
     bool CameraClose();
@@ -81,8 +85,9 @@ public:
 
     /**
      * @brief Stop the camera
-     * Releases the capture session and destroys the camera resources,
-     * the next CameraStart() reopens the camera from scratch
+     * Stops the frame stream but keeps the capture pipeline alive, so the
+     * next CameraStart() resumes instantly. The pipeline is destroyed only
+     * by CameraClose() or by the widget destructor
      */
     void CameraStop();
 
@@ -101,6 +106,17 @@ signals:
      * @param msg Human readable error description
      */
     void errorOccurred(const QString &msg);
+
+protected:
+
+    /**
+     * @brief Widget close handler
+     * Deinitializes the camera when the window is closed, even if the user
+     * never pressed Stop: the frame stream is stopped and the capture
+     * pipeline is released, so the device is never left busy
+     * @param event Close event
+     */
+    void closeEvent(QCloseEvent *event) override;
 
 private slots:
 
@@ -130,6 +146,14 @@ private slots:
      * @param idx Index in the video formats list
      */
     void OnFormatSelected(int idx);
+
+    /**
+     * @brief Handler of the camera active state change
+     * Keeps the widget state and the control buttons in sync with the
+     * state actually reported by the backend
+     * @param active true when the camera is producing frames
+     */
+    void OnCameraActiveChanged(bool active);
 
 private:
 
@@ -206,6 +230,18 @@ private:
     void ReportError(const QString &msg);
 
     /**
+     * @brief Release the capture pipeline
+     * Disconnects the frame handler, stops the camera, detaches the video
+     * output and the camera from the capture session and destroys
+     * QVideoSink / QCamera. Idempotent: calling it twice is safe
+     * @param deferred true - destroy the objects through deleteLater(), so
+     *        the call never blocks the GUI thread; false - destroy them
+     *        immediately (the destructor path, where there is no event loop
+     *        left to process a deferred deletion)
+     */
+    void ReleasePipeline(bool deferred = true);
+
+    /**
      * @brief Update the control buttons state
      * Enables the start, the pause and the stop buttons according to the current state
      */
@@ -251,9 +287,9 @@ private:
 /* ========================[  END FILE CONTENT  ]========================
  * Library          : vhlibcamera
  * File             : src/vhwdgcam.hpp
- * Revision         : 0.0.2
- * Content size     : 6642
- * Date / Time      : 06-11-2026 23:33:19
- * MD5              : 484cbd0f89cd13645d7030931ab86593
+ * Revision         : 0.0.3
+ * Content size     : 8126
+ * Date / Time      : 07-11-2026 02:19:26
+ * MD5              : 5f7a77bf490d9328cc26b7a059df11cc
  * Copyright        : © 2026 Viktor Glebov
  * ====================================================================== */

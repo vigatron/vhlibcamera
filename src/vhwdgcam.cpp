@@ -1,14 +1,14 @@
 /* ======================================================================================
  * Library       : vhlibcamera
  * Description   : Qt6 camera capture widget with live preview and format selection
- * Revision      : 0.0.2
+ * Revision      : 0.0.3
  * Source        : https://github.com/vigatron/vhlibcamera
  * Disclaimer    : Provided "AS IS", without warranty.
  * License       : MIT
  * File          : src/vhwdgcam.cpp
- * Content size  : 12678
- * Date / Time   : 06-11-2026 23:33:19
- * MD5           : d0497cf7782eea790269fc74bfb02597
+ * Content size  : 16374
+ * Date / Time   : 07-11-2026 02:19:26
+ * MD5           : e2b788e2d40c22d19865f66945eb5673
  * Notes         : MD5 = file content without header/footer
  * Encoding      : UTF-8
  * Author        : Viktor Glebov / V01G04A81
@@ -23,6 +23,8 @@
 #include <QComboBox>
 #include <QSignalBlocker>
 #include <QVideoFrameFormat>
+#include <QCloseEvent>
+#include <QTimer>
 #include <QDebug>
 
 // ---------------------------------------------------------------------------
@@ -40,11 +42,13 @@ VHWidgetCamera::VHWidgetCamera(QWidget *parent) : QWidget(parent)
 
 /**
  * @brief Destructor
- * Closes the camera and releases all captured resources
+ * Releases all captured resources synchronously: the widget is going away and
+ * there is no event loop left to process a deferred deletion. The camera is
+ * deinitialized even if the user never pressed Stop
  */
 VHWidgetCamera::~VHWidgetCamera()
 {
-    CameraClose();
+    ReleasePipeline(false);
 }
 
 /**
@@ -66,15 +70,22 @@ int VHWidgetCamera::Enumerate()
 
 /**
  * @brief Open a camera by its index
- * Closes the previously opened camera, creates QCamera and QVideoSink,
+ * Releases the previously opened camera, creates QCamera and QVideoSink,
  * connects frame processing and applies the selected video format
  * @param id Index of the camera in the available cameras list
  * @return true on success, false on error
  */
 bool VHWidgetCamera::CameraOpen(int id)
 {
-    // Release previous resources before opening a new camera
-    CameraClose();
+    // Release previous resources before opening a new camera.
+    // The release is done synchronously here: the device must be free
+    // before a new QCamera is created on it
+    ReleasePipeline(false);
+
+    // The previous stream is gone, the real state is confirmed by the
+    // activeChanged() signal of the new camera
+    cameraRunning = false;
+    cameraPaused = false;
 
     // There is nothing to open without a device
     if (camerasList.isEmpty())
@@ -117,6 +128,14 @@ bool VHWidgetCamera::CameraOpen(int id)
                 ReportError(txt);
         });
 
+    // Keep the widget state in sync with the state of the backend:
+    // the buttons must reflect what the camera really does
+    QObject::connect(
+        camera,
+        &QCamera::activeChanged,
+        this,
+        &VHWidgetCamera::OnCameraActiveChanged);
+
     // Keep the formats list in sync with the camera being opened
     if (uiCameraIndex != id)
     {
@@ -136,7 +155,10 @@ bool VHWidgetCamera::CameraOpen(int id)
 
 /**
  * @brief Close the camera
- * Stops the camera, disconnects all signals and releases allocated memory
+ * Stops the frame stream and defers the release of the capture pipeline to
+ * the event loop. Destroying QCamera / QVideoSink directly inside a signal
+ * handler blocks the GUI thread while the backend streaming thread is still
+ * running, which looks exactly like a frozen widget
  * @return true always
  */
 bool VHWidgetCamera::CameraClose()
@@ -144,16 +166,40 @@ bool VHWidgetCamera::CameraClose()
     cameraRunning = false;
     cameraPaused = false;
 
-    if (!camera)
+    if (!camera && !sink)
     {
         UpdateControls();
         return true;
     }
 
-    // Stop the camera
-    camera->stop();
+    // Stop the stream now, release the resources later
+    if (camera)
+    {
+        camera->stop();
+    }
 
-    // Disconnect sink -> ProcessFrame
+    // The pipeline destruction is deferred: the current call stack may be a
+    // button handler and the backend needs the event loop to finish the
+    // streaming thread. singleShot() is bound to this object and is dropped
+    // automatically if the widget is destroyed
+    QTimer::singleShot(0, this, [this]() { ReleasePipeline(true); });
+
+    UpdateControls();
+
+    return true;
+}
+
+/**
+ * @brief Release the capture pipeline
+ * Disconnects the frame handler, stops the camera, detaches the video output
+ * and the camera from the capture session and destroys QVideoSink / QCamera.
+ * Idempotent: calling it twice is safe
+ * @param deferred true - destroy the objects through deleteLater(), so the
+ *        call never blocks the GUI thread; false - destroy them immediately
+ */
+void VHWidgetCamera::ReleasePipeline(bool deferred)
+{
+    // No more frames may reach ProcessFrame()
     if (sink)
     {
         QObject::disconnect(
@@ -161,23 +207,46 @@ bool VHWidgetCamera::CameraClose()
             &QVideoSink::videoFrameChanged,
             this,
             &VHWidgetCamera::ProcessFrame);
+    }
 
-        // The session must not keep a pointer to the sink being deleted
-        session.setVideoOutput(nullptr);
+    if (camera)
+    {
+        camera->stop();
+    }
 
-        delete sink;
+    // The session must not keep pointers to the objects being destroyed
+    session.setVideoOutput(nullptr);
+    session.setCamera(nullptr);
+
+    // Deferred destruction: the streaming thread of the backend may still
+    // hold a reference to the sink or to the camera
+    if (sink)
+    {
+        if (deferred)
+        {
+            sink->deleteLater();
+        }
+        else
+        {
+            delete sink;
+        }
+
         sink = nullptr;
     }
 
-    // Clear the capture session and destroy the camera
-    // (the session must be detached before the camera is deleted)
-    session.setCamera(nullptr);
-    delete camera;
-    camera = nullptr;
+    if (camera)
+    {
+        if (deferred)
+        {
+            camera->deleteLater();
+        }
+        else
+        {
+            delete camera;
+        }
 
-    UpdateControls();
-
-    return true;
+        camera = nullptr;
+    }
 }
 
 /**
@@ -192,23 +261,34 @@ void VHWidgetCamera::CameraStart()
         return;
     }
 
-    camera->start();
-    cameraRunning = true;
     cameraPaused = false;
+
+    // The real state is confirmed by QCamera::activeChanged(),
+    // cameraRunning is updated there
+    camera->start();
 
     UpdateControls();
 }
 
 /**
  * @brief Stop the camera
- * Releases the capture session and destroys the camera resources,
- * the next CameraStart() reopens the camera from scratch
+ * Stops the frame stream but keeps the capture pipeline alive, so the next
+ * CameraStart() resumes instantly and no backend teardown is triggered
  */
 void VHWidgetCamera::CameraStop()
 {
-    // Full deinitialization of the capture pipeline:
-    // stop the stream and release the camera resources
-    CameraClose();
+    // The capture pipeline must NOT be destroyed here: the GStreamer teardown
+    // performed in the GUI thread waits for the streaming thread and blocks
+    // the whole application. Resources are released by CameraClose()
+    cameraRunning = false;
+    cameraPaused = false;
+
+    if (camera)
+    {
+        camera->stop();
+    }
+
+    UpdateControls();
 }
 
 /**
@@ -289,7 +369,7 @@ bool VHWidgetCamera::ApplyFormat(int fmtId)
  * @brief Process a video frame
  * Converts the frame to an image, updates the preview area and
  * emits frameReady() for external listeners.
- * Frame updates are suppressed while the camera is paused
+ * Frame updates are suppressed while the camera is stopped or paused
  * @param frame Video frame received from the capture session
  */
 void VHWidgetCamera::ProcessFrame(const QVideoFrame &frame)
@@ -298,9 +378,9 @@ void VHWidgetCamera::ProcessFrame(const QVideoFrame &frame)
     if (!frame.isValid())
         return;
 
-    // Frame updates to the preview are suppressed while paused,
-    // the QVideoSink stream itself keeps running
-    if (cameraPaused)
+    // Frames that were already queued by the backend may arrive after the
+    // stream has been stopped, and frame updates are suppressed while paused
+    if (!cameraRunning || cameraPaused)
         return;
 
     // The frame is always rendered by the internal preview area,
@@ -309,7 +389,11 @@ void VHWidgetCamera::ProcessFrame(const QVideoFrame &frame)
     if (img.isNull())
         return;
 
-    wdgImage->SetImage(img);
+    if (wdgImage)
+    {
+        wdgImage->SetImage(img);
+    }
+
     emit frameReady(img);
 }
 
@@ -503,6 +587,47 @@ void VHWidgetCamera::OnCameraSelected(int idx)
 }
 
 /**
+ * @brief Handler of the camera active state change
+ * Keeps the widget state and the control buttons in sync with the
+ * state actually reported by the backend
+ * @param active true when the camera is producing frames
+ */
+void VHWidgetCamera::OnCameraActiveChanged(bool active)
+{
+    // Ignore notifications coming from a camera that is not the current one
+    // (for example, a device that is being released while a new one is
+    // already opened)
+    if (!camera || QObject::sender() != camera)
+    {
+        return;
+    }
+
+    cameraRunning = active;
+
+    // A stopped or failed stream is never paused
+    if (!active)
+    {
+        cameraPaused = false;
+    }
+
+    UpdateControls();
+}
+
+/**
+ * @brief Widget close handler
+ * Deinitializes the camera when the window is closed, even if the user never
+ * pressed Stop: the frame stream is stopped and the capture pipeline is
+ * released, so the device is never left busy
+ * @param event Close event
+ */
+void VHWidgetCamera::closeEvent(QCloseEvent *event)
+{
+    CameraClose();
+
+    QWidget::closeEvent(event);
+}
+
+/**
  * @brief Handler of the video format selection change
  * Applies the selected format to the opened camera
  * @param idx Index in the video formats list
@@ -522,9 +647,9 @@ void VHWidgetCamera::OnFormatSelected(int idx)
 /* ========================[  END FILE CONTENT  ]========================
  * Library          : vhlibcamera
  * File             : src/vhwdgcam.cpp
- * Revision         : 0.0.2
- * Content size     : 12678
- * Date / Time      : 06-11-2026 23:33:19
- * MD5              : d0497cf7782eea790269fc74bfb02597
+ * Revision         : 0.0.3
+ * Content size     : 16374
+ * Date / Time      : 07-11-2026 02:19:26
+ * MD5              : e2b788e2d40c22d19865f66945eb5673
  * Copyright        : © 2026 Viktor Glebov
  * ====================================================================== */
